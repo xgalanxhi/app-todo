@@ -1,0 +1,34 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: deployer
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      manifest:
+        type: string
+        required: true
+
+jobs:
+  component-db:
+    if: ${{ fromJSON(inputs.manifest)['component-db']['docker.io/mock/database'].deploy }}
+    uses: xgalanxhi/component-db/.cloudbees/workflows/deploy.yaml
+    vars: inherit
+    secrets: inherit
+    with:
+      artifact-id: ${{ fromJSON(inputs.manifest)['component-db']['docker.io/mock/database'].id }}
+      version: ${{ fromJSON(inputs.manifest)['component-db']['docker.io/mock/database'].version }}
+      environment: ${{ inputs.environment }}
+
+  component-web:
+    needs: component-db
+    if: ${{ fromJSON(inputs.manifest)['component-web']['docker.io/mock/web'].deploy }}
+    uses: xgalanxhi/component-web/.cloudbees/workflows/deploy.yaml
+    vars: inherit
+    secrets: inherit
+    with:
+      artifact-id: ${{ fromJSON(inputs.manifest)['component-web']['docker.io/mock/web'].id }}
+      version: ${{ fromJSON(inputs.manifest)['component-web']['docker.io/mock/web'].version }}
+      environment: ${{ inputs.environment }}
