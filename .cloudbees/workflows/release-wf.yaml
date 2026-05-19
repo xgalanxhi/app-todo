@@ -30,6 +30,7 @@ jobs:
       environment: ${{ job.environment }}
 
   STAGING:
+    needs: DEV
     environment: STAGING
     uses: ./.cloudbees/workflows/deployer.yaml
     vars: inherit
@@ -39,6 +40,7 @@ jobs:
       environment: ${{ job.environment }}
 
   PROD:
+    needs: STAGING
     environment: PROD
     uses: ./.cloudbees/workflows/deployer.yaml
     vars: inherit
