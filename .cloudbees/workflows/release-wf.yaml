@@ -13,6 +13,7 @@ metadata:
     - name: DEV
       jobs:
         - DEV
+        - Approve
     - name: STAGING
       jobs:
         - STAGING
@@ -28,9 +29,7 @@ jobs:
     with:
       manifest: ${{ inputs.manifest }}
       environment: ${{ job.environment }}
-
   STAGING:
-    needs: DEV
     environment: STAGING
     uses: ./.cloudbees/workflows/deployer.yaml
     vars: inherit
@@ -38,7 +37,7 @@ jobs:
     with:
       manifest: ${{ inputs.manifest }}
       environment: ${{ job.environment }}
-
+    needs: Approve
   PROD:
     needs: STAGING
     environment: PROD
@@ -48,3 +47,14 @@ jobs:
     with:
       manifest: ${{ inputs.manifest }}
       environment: ${{ job.environment }}
+  Approve:
+    needs: DEV
+    timeout-minutes: 4320
+    delegates: cloudbees-io/manual-approval/custom-job.yml@v1
+    with:
+      disallowLaunchByUser: false
+      notifyAllEligibleUsers: false
+      approvers: Admins (System)
+      approvalInputs: |
+        Comment:
+          type: string
